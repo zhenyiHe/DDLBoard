@@ -211,6 +211,11 @@
       color: #ef4444;
     }
 
+    /* 今天截止样式 */
+    .countdown-days.today {
+      color: #f59e0b;
+    }
+
     /* 删除按钮 */
     .btn-delete {
       flex: 0 0 auto;
@@ -273,7 +278,7 @@
         </div>
         <div class="form-group date-group">
           <label for="eventDate">截止日期</label>
-          <input type="date" id="eventDate">
+          <input type="date" id="eventDate" min="">
         </div>
         <button type="submit" class="btn-add">添加</button>
       </form>
@@ -303,24 +308,37 @@
     }
 
     /**
-     * 将事件列表写入 localStorage
+     * 将事件列表写入 localStorage，增加异常捕获
      * @param {Array} events 事件数组
      */
     function saveEvents(events) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+      } catch (e) {
+        // localStorage 不可用或空间不足时静默处理
+      }
     }
 
     /**
      * 计算从今天到目标日期的剩余天数
+     * 统一按自然日0点差值计算，忽略时分秒，确保跨月跨年准确
      * @param {string} dateStr 日期字符串 YYYY-MM-DD
      * @returns {number} 剩余天数（可为负数表示已过期）
      */
     function getDaysLeft(dateStr) {
-      var today = new Date();
-      today.setHours(0, 0, 0, 0);
-      var target = new Date(dateStr + 'T00:00:00');
-      var diff = target.getTime() - today.getTime();
-      return Math.ceil(diff / (1000 * 60 * 60 * 24));
+      // 解析目标日期的年月日，避免时区偏移
+      var parts = dateStr.split('-');
+      var targetYear = parseInt(parts[0], 10);
+      var targetMonth = parseInt(parts[1], 10) - 1; // 月份从0开始
+      var targetDay = parseInt(parts[2], 10);
+      var target = new Date(targetYear, targetMonth, targetDay);
+
+      // 取当前本地日期的0点
+      var now = new Date();
+      var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      var diffMs = target.getTime() - today.getTime();
+      return Math.round(diffMs / (1000 * 60 * 60 * 24));
     }
 
     /**
@@ -372,10 +390,18 @@
         var level = getUrgencyLevel(days);
         var isOverdue = days < 0;
 
-        // 倒计时文字
-        var daysText = isOverdue ? '已过期 ' + Math.abs(days) + ' 天' : days;
-        var daysNum = isOverdue ? Math.abs(days) : days;
-        var label = isOverdue ? '天前已到期' : '天后到期';
+        // 倒计时文字：区分「今天截止」「已过期X天」「还有X天」
+        var daysText, label;
+        if (days === 0) {
+          daysText = '今天截止';
+          label = '';
+        } else if (isOverdue) {
+          daysText = '已过期 ' + Math.abs(days) + ' 天';
+          label = '天前已到期';
+        } else {
+          daysText = days;
+          label = '天后到期';
+        }
 
         html += '<div class="event-card" data-id="' + ev.id + '">'
              +   '<div class="urgency-bar ' + level + '"></div>'
@@ -385,7 +411,7 @@
              +       '<div class="event-deadline">截止：' + formatDate(ev.date) + '</div>'
              +     '</div>'
              +     '<div class="countdown">'
-             +       '<div class="countdown-days' + (isOverdue ? ' overdue' : '') + '">' + daysText + '</div>'
+             +       '<div class="countdown-days' + (isOverdue ? ' overdue' : days === 0 ? ' today' : '') + '">' + daysText + '</div>'
              +       '<div class="countdown-label">' + label + '</div>'
              +     '</div>'
              +   '</div>'
@@ -436,6 +462,29 @@
         return;
       }
 
+      // 校验：截止日期不能早于今天
+      var nowDate = new Date();
+      var todayStr = nowDate.getFullYear() + '-'
+        + String(nowDate.getMonth() + 1).padStart(2, '0') + '-'
+        + String(nowDate.getDate()).padStart(2, '0');
+      if (date < todayStr) {
+        showTip('截止日期不能早于今天');
+        dateInput.focus();
+        return;
+      }
+
+      // 校验：不允许完全重名的事件
+      var existing = loadEvents();
+      var isDuplicate = existing.some(function (ev) {
+        return ev.name === name;
+      });
+      if (isDuplicate) {
+        showTip('已存在同名事件，请更换名称');
+        nameInput.focus();
+        nameInput.select();
+        return;
+      }
+
       // 生成唯一 ID
       var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
@@ -465,6 +514,15 @@
       saveEvents(events);
       renderList();
     }
+
+    /* ========== 初始化日期选择器最小值为今天 ========== */
+    (function setMinDate() {
+      var now = new Date();
+      var y = now.getFullYear();
+      var m = String(now.getMonth() + 1).padStart(2, '0');
+      var d = String(now.getDate()).padStart(2, '0');
+      dateInput.min = y + '-' + m + '-' + d;
+    })();
 
     /* ========== 页面加载时渲染已有数据 ========== */
     renderList();
