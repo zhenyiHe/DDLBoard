@@ -21,37 +21,37 @@
 
     /* ========== 页面主容器：居中布局 ========== */
     .container {
-      max-width: 720px;
+      max-width: 760px;
       margin: 0 auto;
-      padding: 40px 20px;
+      padding: 48px 24px;
     }
 
     /* ========== 页面标题 ========== */
     .header {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 36px;
     }
 
     .header h1 {
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
       color: #1e3a5f;
       letter-spacing: 1px;
     }
 
     .header p {
-      font-size: 14px;
+      font-size: 15px;
       color: #7b8ca3;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
     /* ========== 添加事件表单区域 ========== */
     .form-card {
       background: #ffffff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 12px rgba(30, 58, 95, 0.08);
-      margin-bottom: 28px;
+      border-radius: 14px;
+      padding: 24px 28px;
+      box-shadow: 0 2px 16px rgba(30, 58, 95, 0.08);
+      margin-bottom: 32px;
     }
 
     .form-row {
@@ -74,7 +74,8 @@
       color: #4a6380;
     }
 
-    .form-group input {
+    .form-group input,
+    .form-group select {
       height: 42px;
       padding: 0 12px;
       border: 1.5px solid #d0dbe8;
@@ -82,23 +83,31 @@
       font-size: 14px;
       color: #1a1a2e;
       outline: none;
-      transition: border-color 0.2s;
+      background: #ffffff;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .form-group input:focus {
+    .form-group input:focus,
+    .form-group select:focus {
       border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
     }
 
     /* 日期选择器宽度固定 */
     .form-group.date-group {
-      flex: 0 0 180px;
+      flex: 0 0 170px;
+    }
+
+    /* 分类选择器宽度固定 */
+    .form-group.category-group {
+      flex: 0 0 130px;
     }
 
     /* 添加按钮 */
     .btn-add {
       flex: 0 0 auto;
       height: 42px;
-      padding: 0 24px;
+      padding: 0 28px;
       background: #3b82f6;
       color: #ffffff;
       border: none;
@@ -106,21 +115,23 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
       white-space: nowrap;
     }
 
     .btn-add:hover {
       background: #2563eb;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
     }
 
     .btn-add:active {
       background: #1d4ed8;
+      transform: scale(0.97);
     }
 
     /* 校验提示信息 */
     .form-tip {
-      margin-top: 8px;
+      margin-top: 10px;
       font-size: 13px;
       color: #ef4444;
       min-height: 20px;
@@ -131,15 +142,21 @@
     .event-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
 
     /* 空状态提示 */
     .empty-state {
       text-align: center;
-      padding: 48px 0;
+      padding: 64px 0;
       color: #94a3b8;
       font-size: 15px;
+    }
+
+    .empty-state .empty-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.4;
     }
 
     /* ========== 单个事件卡片 ========== */
@@ -147,15 +164,24 @@
       display: flex;
       align-items: center;
       background: #ffffff;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 1px 6px rgba(30, 58, 95, 0.06);
-      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 2px 8px rgba(30, 58, 95, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
     }
 
     .event-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 14px rgba(30, 58, 95, 0.12);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(30, 58, 95, 0.12);
+    }
+
+    /* 已过期卡片标灰 */
+    .event-card.overdue {
+      opacity: 0.55;
+    }
+
+    .event-card.overdue:hover {
+      opacity: 0.75;
     }
 
     /* 左侧紧急度色条 */
@@ -171,10 +197,23 @@
     /* 卡片内容区 */
     .event-content {
       flex: 1;
-      padding: 16px 18px;
+      padding: 18px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+
+    .event-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    /* 事件名称行：名称 + 分类标签 */
+    .event-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .event-name {
@@ -183,10 +222,27 @@
       color: #1e293b;
     }
 
+    /* 分类标签 */
+    .category-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      line-height: 1.4;
+    }
+
+    /* 各分类标签配色 */
+    .category-tag.exam    { background: #dbeafe; color: #1d4ed8; }
+    .category-tag.homework { background: #fef3c7; color: #b45309; }
+    .category-tag.activity { background: #d1fae5; color: #047857; }
+    .category-tag.other   { background: #f1f5f9; color: #64748b; }
+
     .event-deadline {
       font-size: 12px;
       color: #94a3b8;
-      margin-top: 3px;
+      margin-top: 4px;
     }
 
     /* 倒计时天数展示 */
@@ -196,7 +252,7 @@
     }
 
     .countdown-days {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
       color: #1e3a5f;
     }
@@ -204,6 +260,7 @@
     .countdown-label {
       font-size: 12px;
       color: #94a3b8;
+      margin-top: 2px;
     }
 
     /* 已过期样式 */
@@ -223,10 +280,10 @@
       background: none;
       border: none;
       color: #c0cad8;
-      font-size: 18px;
+      font-size: 20px;
       cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 4px;
+      padding: 6px 10px;
+      border-radius: 6px;
       transition: color 0.2s, background 0.2s;
       line-height: 1;
     }
@@ -236,13 +293,21 @@
       background: #fef2f2;
     }
 
+    .btn-delete:active {
+      transform: scale(0.9);
+    }
+
     /* ========== 响应式适配 ========== */
-    @media (max-width: 520px) {
+    @media (max-width: 600px) {
+      .container {
+        padding: 32px 16px;
+      }
       .form-row {
         flex-wrap: wrap;
       }
-      .form-group.date-group {
-        flex: 1 1 100%;
+      .form-group.date-group,
+      .form-group.category-group {
+        flex: 1 1 calc(50% - 6px);
       }
       .btn-add {
         width: 100%;
@@ -280,6 +345,15 @@
           <label for="eventDate">截止日期</label>
           <input type="date" id="eventDate" min="">
         </div>
+        <div class="form-group category-group">
+          <label for="eventCategory">分类</label>
+          <select id="eventCategory">
+            <option value="exam">考试</option>
+            <option value="homework">作业</option>
+            <option value="activity">活动</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
         <button type="submit" class="btn-add">添加</button>
       </form>
       <div id="formTip" class="form-tip"></div>
@@ -293,6 +367,14 @@
   <script>
     /* ========== 常量与工具函数 ========== */
     var STORAGE_KEY = 'ddl_board_events';
+
+    /* 分类配置：key → 中文名 */
+    var CATEGORY_MAP = {
+      exam: '考试',
+      homework: '作业',
+      activity: '活动',
+      other: '其他'
+    };
 
     /**
      * 从 localStorage 读取事件列表
@@ -326,14 +408,12 @@
      * @returns {number} 剩余天数（可为负数表示已过期）
      */
     function getDaysLeft(dateStr) {
-      // 解析目标日期的年月日，避免时区偏移
       var parts = dateStr.split('-');
       var targetYear = parseInt(parts[0], 10);
-      var targetMonth = parseInt(parts[1], 10) - 1; // 月份从0开始
+      var targetMonth = parseInt(parts[1], 10) - 1;
       var targetDay = parseInt(parts[2], 10);
       var target = new Date(targetYear, targetMonth, targetDay);
 
-      // 取当前本地日期的0点
       var now = new Date();
       var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -352,19 +432,11 @@
       return 'green';
     }
 
-    /**
-     * 格式化日期为可读字符串
-     * @param {string} dateStr YYYY-MM-DD
-     * @returns {string} 如 "2026-08-20"
-     */
-    function formatDate(dateStr) {
-      return dateStr;
-    }
-
     /* ========== DOM 引用 ========== */
     var form = document.getElementById('eventForm');
     var nameInput = document.getElementById('eventName');
     var dateInput = document.getElementById('eventDate');
+    var categoryInput = document.getElementById('eventCategory');
     var tipEl = document.getElementById('formTip');
     var listEl = document.getElementById('eventList');
 
@@ -372,15 +444,26 @@
     function renderList() {
       var events = loadEvents();
 
-      // 空状态
+      /* 空状态引导文案 */
       if (events.length === 0) {
-        listEl.innerHTML = '<div class="empty-state">暂无事件，添加一个吧</div>';
+        listEl.innerHTML = '<div class="empty-state">'
+          + '<div class="empty-icon">📋</div>'
+          + '<div>暂无事件，在上方添加你的第一个DDL吧</div>'
+          + '</div>';
         return;
       }
 
-      // 按剩余天数升序排列（最紧急的排最前）
+      /* 排序：未过期按剩余天数升序（紧急在前），已过期统一沉底 */
       events.sort(function (a, b) {
-        return getDaysLeft(a.date) - getDaysLeft(b.date);
+        var da = getDaysLeft(a.date);
+        var db = getDaysLeft(b.date);
+        var aOver = da < 0;
+        var bOver = db < 0;
+        // 都未过期或都过期：按天数升序
+        if (!aOver && !bOver) return da - db;
+        if (aOver && bOver) return da - db; // 过期越久排越后
+        // 未过期排前面
+        return aOver ? 1 : -1;
       });
 
       var html = '';
@@ -389,8 +472,10 @@
         var days = getDaysLeft(ev.date);
         var level = getUrgencyLevel(days);
         var isOverdue = days < 0;
+        // 兼容旧数据无category字段
+        var category = ev.category || 'other';
 
-        // 倒计时文字：区分「今天截止」「已过期X天」「还有X天」
+        /* 倒计时文字：区分「今天截止」「已过期X天」「还有X天」 */
         var daysText, label;
         if (days === 0) {
           daysText = '今天截止';
@@ -403,12 +488,15 @@
           label = '天后到期';
         }
 
-        html += '<div class="event-card" data-id="' + ev.id + '">'
+        html += '<div class="event-card' + (isOverdue ? ' overdue' : '') + '" data-id="' + ev.id + '">'
              +   '<div class="urgency-bar ' + level + '"></div>'
              +   '<div class="event-content">'
-             +     '<div>'
-             +       '<div class="event-name">' + escapeHtml(ev.name) + '</div>'
-             +       '<div class="event-deadline">截止：' + formatDate(ev.date) + '</div>'
+             +     '<div class="event-info">'
+             +       '<div class="event-name-row">'
+             +         '<span class="event-name">' + escapeHtml(ev.name) + '</span>'
+             +         '<span class="category-tag ' + category + '">' + CATEGORY_MAP[category] + '</span>'
+             +       '</div>'
+             +       '<div class="event-deadline">截止：' + ev.date + '</div>'
              +     '</div>'
              +     '<div class="countdown">'
              +       '<div class="countdown-days' + (isOverdue ? ' overdue' : days === 0 ? ' today' : '') + '">' + daysText + '</div>'
@@ -434,7 +522,6 @@
     /* ========== 显示校验提示 ========== */
     function showTip(msg) {
       tipEl.textContent = msg;
-      // 2秒后自动清除提示
       clearTimeout(showTip._timer);
       showTip._timer = setTimeout(function () {
         tipEl.textContent = '';
@@ -447,22 +534,23 @@
 
       var name = nameInput.value.trim();
       var date = dateInput.value;
+      var category = categoryInput.value;
 
-      // 校验：名称为空
+      /* 校验：名称为空 */
       if (!name) {
         showTip('请输入事件名称');
         nameInput.focus();
         return;
       }
 
-      // 校验：未选日期
+      /* 校验：未选日期 */
       if (!date) {
         showTip('请选择截止日期');
         dateInput.focus();
         return;
       }
 
-      // 校验：截止日期不能早于今天
+      /* 校验：截止日期不能早于今天 */
       var nowDate = new Date();
       var todayStr = nowDate.getFullYear() + '-'
         + String(nowDate.getMonth() + 1).padStart(2, '0') + '-'
@@ -473,7 +561,7 @@
         return;
       }
 
-      // 校验：不允许完全重名的事件
+      /* 校验：不允许完全重名的事件 */
       var existing = loadEvents();
       var isDuplicate = existing.some(function (ev) {
         return ev.name === name;
@@ -485,23 +573,23 @@
         return;
       }
 
-      // 生成唯一 ID
+      /* 生成唯一 ID */
       var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
-      // 读取、追加、保存
+      /* 读取、追加、保存 */
       var events = loadEvents();
-      events.push({ id: id, name: name, date: date });
+      events.push({ id: id, name: name, date: date, category: category });
       saveEvents(events);
 
-      // 清空输入框
+      /* 清空输入框，分类保留上次选择方便连续添加 */
       nameInput.value = '';
       dateInput.value = '';
       tipEl.textContent = '';
 
-      // 重新渲染列表
+      /* 重新渲染列表 */
       renderList();
 
-      // 焦点回到名称输入框，方便连续添加
+      /* 焦点回到名称输入框 */
       nameInput.focus();
     });
 
