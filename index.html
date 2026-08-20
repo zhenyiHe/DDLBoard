@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDL 倒计时看板</title>
+  <style>
+    /* ========== 全局重置与基础样式 ========== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #eef2f7;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ========== 页面主容器：居中布局 ========== */
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    /* ========== 页面标题 ========== */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1e3a5f;
+      letter-spacing: 1px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #7b8ca3;
+      margin-top: 6px;
+    }
+
+    /* ========== 添加事件表单区域 ========== */
+    .form-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(30, 58, 95, 0.08);
+      margin-bottom: 28px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    /* 表单输入组 */
+    .form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a6380;
+    }
+
+    .form-group input {
+      height: 42px;
+      padding: 0 12px;
+      border: 1.5px solid #d0dbe8;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1a1a2e;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: #3b82f6;
+    }
+
+    /* 日期选择器宽度固定 */
+    .form-group.date-group {
+      flex: 0 0 180px;
+    }
+
+    /* 添加按钮 */
+    .btn-add {
+      flex: 0 0 auto;
+      height: 42px;
+      padding: 0 24px;
+      background: #3b82f6;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-add:hover {
+      background: #2563eb;
+    }
+
+    .btn-add:active {
+      background: #1d4ed8;
+    }
+
+    /* 校验提示信息 */
+    .form-tip {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #ef4444;
+      min-height: 20px;
+      transition: opacity 0.2s;
+    }
+
+    /* ========== 事件卡片列表区域 ========== */
+    .event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* 空状态提示 */
+    .empty-state {
+      text-align: center;
+      padding: 48px 0;
+      color: #94a3b8;
+      font-size: 15px;
+    }
+
+    /* ========== 单个事件卡片 ========== */
+    .event-card {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 6px rgba(30, 58, 95, 0.06);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .event-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(30, 58, 95, 0.12);
+    }
+
+    /* 左侧紧急度色条 */
+    .urgency-bar {
+      flex: 0 0 6px;
+      align-self: stretch;
+    }
+
+    .urgency-bar.red    { background: #ef4444; }
+    .urgency-bar.yellow { background: #f59e0b; }
+    .urgency-bar.green  { background: #22c55e; }
+
+    /* 卡片内容区 */
+    .event-content {
+      flex: 1;
+      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .event-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .event-deadline {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 3px;
+    }
+
+    /* 倒计时天数展示 */
+    .countdown {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .countdown-days {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1e3a5f;
+    }
+
+    .countdown-label {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    /* 已过期样式 */
+    .countdown-days.overdue {
+      color: #ef4444;
+    }
+
+    /* 删除按钮 */
+    .btn-delete {
+      flex: 0 0 auto;
+      margin-right: 16px;
+      background: none;
+      border: none;
+      color: #c0cad8;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+      line-height: 1;
+    }
+
+    .btn-delete:hover {
+      color: #ef4444;
+      background: #fef2f2;
+    }
+
+    /* ========== 响应式适配 ========== */
+    @media (max-width: 520px) {
+      .form-row {
+        flex-wrap: wrap;
+      }
+      .form-group.date-group {
+        flex: 1 1 100%;
+      }
+      .btn-add {
+        width: 100%;
+      }
+      .event-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .countdown {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 页面主容器 -->
+  <div class="container">
+
+    <!-- 标题区域 -->
+    <div class="header">
+      <h1>DDL 倒计时看板</h1>
+      <p>记录截止日期，掌控每一步进度</p>
+    </div>
+
+    <!-- 添加事件表单 -->
+    <div class="form-card">
+      <form id="eventForm" class="form-row" autocomplete="off">
+        <div class="form-group">
+          <label for="eventName">事件名称</label>
+          <input type="text" id="eventName" placeholder="请输入事件名称">
+        </div>
+        <div class="form-group date-group">
+          <label for="eventDate">截止日期</label>
+          <input type="date" id="eventDate">
+        </div>
+        <button type="submit" class="btn-add">添加</button>
+      </form>
+      <div id="formTip" class="form-tip"></div>
+    </div>
+
+    <!-- 事件卡片列表 -->
+    <div id="eventList" class="event-list"></div>
+
+  </div>
+
+  <script>
+    /* ========== 常量与工具函数 ========== */
+    var STORAGE_KEY = 'ddl_board_events';
+
+    /**
+     * 从 localStorage 读取事件列表
+     * @returns {Array} 事件数组
+     */
+    function loadEvents() {
+      try {
+        var data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    /**
+     * 将事件列表写入 localStorage
+     * @param {Array} events 事件数组
+     */
+    function saveEvents(events) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    }
+
+    /**
+     * 计算从今天到目标日期的剩余天数
+     * @param {string} dateStr 日期字符串 YYYY-MM-DD
+     * @returns {number} 剩余天数（可为负数表示已过期）
+     */
+    function getDaysLeft(dateStr) {
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      var target = new Date(dateStr + 'T00:00:00');
+      var diff = target.getTime() - today.getTime();
+      return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+
+    /**
+     * 根据剩余天数返回紧急度等级
+     * @param {number} days 剩余天数
+     * @returns {string} 'red' | 'yellow' | 'green'
+     */
+    function getUrgencyLevel(days) {
+      if (days <= 3) return 'red';
+      if (days <= 7) return 'yellow';
+      return 'green';
+    }
+
+    /**
+     * 格式化日期为可读字符串
+     * @param {string} dateStr YYYY-MM-DD
+     * @returns {string} 如 "2026-08-20"
+     */
+    function formatDate(dateStr) {
+      return dateStr;
+    }
+
+    /* ========== DOM 引用 ========== */
+    var form = document.getElementById('eventForm');
+    var nameInput = document.getElementById('eventName');
+    var dateInput = document.getElementById('eventDate');
+    var tipEl = document.getElementById('formTip');
+    var listEl = document.getElementById('eventList');
+
+    /* ========== 渲染事件列表 ========== */
+    function renderList() {
+      var events = loadEvents();
+
+      // 空状态
+      if (events.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">暂无事件，添加一个吧</div>';
+        return;
+      }
+
+      // 按剩余天数升序排列（最紧急的排最前）
+      events.sort(function (a, b) {
+        return getDaysLeft(a.date) - getDaysLeft(b.date);
+      });
+
+      var html = '';
+      for (var i = 0; i < events.length; i++) {
+        var ev = events[i];
+        var days = getDaysLeft(ev.date);
+        var level = getUrgencyLevel(days);
+        var isOverdue = days < 0;
+
+        // 倒计时文字
+        var daysText = isOverdue ? '已过期 ' + Math.abs(days) + ' 天' : days;
+        var daysNum = isOverdue ? Math.abs(days) : days;
+        var label = isOverdue ? '天前已到期' : '天后到期';
+
+        html += '<div class="event-card" data-id="' + ev.id + '">'
+             +   '<div class="urgency-bar ' + level + '"></div>'
+             +   '<div class="event-content">'
+             +     '<div>'
+             +       '<div class="event-name">' + escapeHtml(ev.name) + '</div>'
+             +       '<div class="event-deadline">截止：' + formatDate(ev.date) + '</div>'
+             +     '</div>'
+             +     '<div class="countdown">'
+             +       '<div class="countdown-days' + (isOverdue ? ' overdue' : '') + '">' + daysText + '</div>'
+             +       '<div class="countdown-label">' + label + '</div>'
+             +     '</div>'
+             +   '</div>'
+             +   '<button class="btn-delete" title="删除" onclick="deleteEvent(\'' + ev.id + '\')">×</button>'
+             + '</div>';
+      }
+
+      listEl.innerHTML = html;
+    }
+
+    /**
+     * HTML 转义，防止 XSS
+     */
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.innerHTML;
+    }
+
+    /* ========== 显示校验提示 ========== */
+    function showTip(msg) {
+      tipEl.textContent = msg;
+      // 2秒后自动清除提示
+      clearTimeout(showTip._timer);
+      showTip._timer = setTimeout(function () {
+        tipEl.textContent = '';
+      }, 2000);
+    }
+
+    /* ========== 添加事件 ========== */
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var name = nameInput.value.trim();
+      var date = dateInput.value;
+
+      // 校验：名称为空
+      if (!name) {
+        showTip('请输入事件名称');
+        nameInput.focus();
+        return;
+      }
+
+      // 校验：未选日期
+      if (!date) {
+        showTip('请选择截止日期');
+        dateInput.focus();
+        return;
+      }
+
+      // 生成唯一 ID
+      var id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+      // 读取、追加、保存
+      var events = loadEvents();
+      events.push({ id: id, name: name, date: date });
+      saveEvents(events);
+
+      // 清空输入框
+      nameInput.value = '';
+      dateInput.value = '';
+      tipEl.textContent = '';
+
+      // 重新渲染列表
+      renderList();
+
+      // 焦点回到名称输入框，方便连续添加
+      nameInput.focus();
+    });
+
+    /* ========== 删除事件 ========== */
+    function deleteEvent(id) {
+      var events = loadEvents();
+      events = events.filter(function (ev) {
+        return ev.id !== id;
+      });
+      saveEvents(events);
+      renderList();
+    }
+
+    /* ========== 页面加载时渲染已有数据 ========== */
+    renderList();
+  </script>
+
+</body>
+</html>
